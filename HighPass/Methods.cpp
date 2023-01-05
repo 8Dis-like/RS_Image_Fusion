@@ -22,13 +22,16 @@ void weighing(Mat& pan, Mat& color)
     int nWidth = color.cols;  	//列数，图像宽度
     int channels = color.channels();
 
+    //滤波1
     //blur(pan, pantemp, Size(7,7));
-    //
+    
+    //滤波2
    /* float exp = 1.0 / 9;    
     Point anchor = Point(-1, -1);
     Mat kernel = (Mat_<float>(3, 3) << exp, exp, exp, exp, exp, exp, exp, exp, exp);
     filter2D(pan, pantemp, -1, kernel,anchor, 0.0, BORDER_DEFAULT);*/
-    // 
+
+    // 滤波3--- work 
     int Division = 1;
     int Offset = 0;
     double values[9][9]; int Size = 3;
@@ -93,7 +96,7 @@ void weighing(Mat& pan, Mat& color)
     }
 }
 
-
+//对比度增强--默认拉伸至灰度区间[0,255]
 void Contraststretch(Mat& M)
 {
     int nHeight = M.rows; 	//行数，图像高度
@@ -124,6 +127,7 @@ void Contraststretch(Mat& M)
     }
 }
 
+//对比度增强--自主选择目标拉伸区间
 void Contraststretch(Mat& M, int minout, int maxout)
 {
     int nHeight = M.rows; 	//行数，图像高度
