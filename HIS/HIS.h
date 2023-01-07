@@ -5,6 +5,7 @@
 #include<opencv2/imgproc.hpp>
 #include <iostream>
 #include<math.h>
+#include<Windows.h>
 #include"dispose.h"
 #define PI 3.1415926
 
@@ -14,11 +15,7 @@ float r[216][297];
 float g[216][297];
 float b[216][297];
 float I_I[216][297];
-
-void HISchanged(string path_r, string path_g, string path_b, string path_pan) {
-	Mat Mr = imread(path_r, IMREAD_GRAYSCALE);
-	Mat Mg = imread(path_g, IMREAD_GRAYSCALE);
-	Mat Mb = imread(path_b, IMREAD_GRAYSCALE);
+Mat RGBtoHIS_geo(Mat& Mr, Mat& Mg, Mat& Mb) {
 	for (int i = 0; i < 216; i++) {
 		for (int j = 0; j < 297; j++) {
 			r[i][j] = (int)Mr.at<uchar>(i, j);
@@ -33,6 +30,7 @@ void HISchanged(string path_r, string path_g, string path_b, string path_pan) {
 			float R = r[i][j] / 255.f;
 			float G = g[i][j] / 255.f;
 			float B = b[i][j] / 255.f;//归一化处理
+	
 			float k = (R - G + R - B) / 2;
 			float L = sqrt((R - G) * (R - G) + (R - B) * (G - B));
 			if (L == 0) {
@@ -61,14 +59,67 @@ void HISchanged(string path_r, string path_g, string path_b, string path_pan) {
 			hsi.at<Vec3b>(i, j)[2] = I * 255;
 		}
 	}//RGB转HSI，有公式
-	Mat M(216, 297, CV_8UC3, Scalar(0, 0, 255));//单纯由R,G,B三波段组成的图像
+	return hsi;
+}
+Mat RGBtoHIS_cylin(Mat& Mr, Mat& Mg, Mat& Mb) {
 	for (int i = 0; i < 216; i++) {
 		for (int j = 0; j < 297; j++) {
-			M.at<Vec3b>(i, j)[0] = b[i][j];
-			M.at<Vec3b>(i, j)[1] = g[i][j];
-			M.at<Vec3b>(i, j)[2] = r[i][j];
+			r[i][j] = (int)Mr.at<uchar>(i, j);
+			g[i][j] = (int)Mg.at<uchar>(i, j);
+			b[i][j] = (int)Mb.at<uchar>(i, j);
 		}
-	}
+	}//储存r,g,b三波段灰度值
+	Mat hsi(216, 297, CV_8UC3);
+	float H = 0, I = 0, S = 0;
+	for (int i = 0; i < 216; i++) {
+		for (int j = 0; j < 297; j++) {
+			float R = r[i][j] / 255.f;
+			float G = g[i][j] / 255.f;
+			float B = b[i][j] / 255.f;//归一化处理
+			I = 1 / sqrt(3) * (R + G + B);
+			if (G == B) {
+				H = PI / 2;
+			}
+			else if (G > B) {
+				H = atan((2 * R - G - B) / (sqrt(3) * (G - B)));
+			}
+			else {
+				H = atan((2 * R - G - B) / (sqrt(3) * (G - B))) + PI;
+			}
+			S = (sqrt(6) / 3) * sqrt(R * R + G * G + B * B - R * G - R * B - G * B);
+			
+			I_I[i][j] = I * 255;
+			hsi.at<Vec3b>(i, j)[0] = H * 255;
+			hsi.at<Vec3b>(i, j)[1] = S * 255;
+			hsi.at<Vec3b>(i, j)[2] = I * 255;
+		}
+	}//RGB转HSI，有公式
+	return hsi;
+}
+void HISchanged(string path_r, string path_g, string path_b, string path_pan) {
+	Mat Mr = imread(path_r, IMREAD_GRAYSCALE);
+	Mat Mg = imread(path_g, IMREAD_GRAYSCALE);
+	Mat Mb = imread(path_b, IMREAD_GRAYSCALE);
+	
+	Mat M(216, 297, CV_8UC3, Scalar(0, 0, 255));//单纯由R,G,B三波段组成的图像
+
+	//for (int i = 0; i < 216; i++) {
+	//	for (int j = 0; j < 297; j++) {
+	//		M.at<Vec3b>(i, j)[0] = b[i][j];
+	//		M.at<Vec3b>(i, j)[1] = g[i][j];
+	//		M.at<Vec3b>(i, j)[2] = r[i][j];
+	//	}
+	//}
+	//修改版本
+	vector<Mat> channels;
+	channels.push_back(Mr);
+	channels.push_back(Mg);
+	channels.push_back(Mb);
+	merge(channels, M);
+	
+	Mat hsi = RGBtoHIS_geo(Mr, Mg, Mb);//进行HIS变换--几何变换法
+	//Mat hsi = RGBtoHIS_cylin(Mr, Mg, Mb); //圆柱体变换
+
 	resize(M, M, { 594,430 }, 0, 0, cv::INTER_CUBIC);
 	imshow("rgbimage", M);//原彩色图像（用resize放大后）
 	imshow("hsiimage", hsi);//hsi波段图像
@@ -118,5 +169,5 @@ void HISchanged(string path_r, string path_g, string path_b, string path_pan) {
 			rgb.at<Vec3b>(i, j)[2] = R * 255;
 		}
 	}//HSI转RGB
-	imshow("rgbnewimage", rgb);//最终结果
+	imshow("merge_result", rgb);//最终结果
 }
