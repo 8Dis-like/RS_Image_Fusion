@@ -1,4 +1,6 @@
 #include"Methods.h"
+#include"dispose.h"
+#include"HIS.h"
 
 int main()
 {
@@ -20,8 +22,12 @@ int main()
 
     //融合图像
     Mat fusionimage = RGBfusion(path1, path2, path3);
-    weighing(pan, fusionimage);
-  
+    //高通滤波
+    HPF(pan,fusionimage);
+    //高频调制
+    //weighing(pan, fusionimage);
+    //HIS变换
+    //HISchanged(path1, path2, path3, path4); 
 
     namedWindow("post-processing", WINDOW_AUTOSIZE);
     imshow("post-processing", fusionimage);
