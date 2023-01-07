@@ -10,5 +10,6 @@ Mat RGBfusion(string,string,string);
 
 void Contraststretch(Mat& M);
 void Contraststretch(Mat& M, int minout, int maxout);
+void HPF(Mat& pan, Mat& color);
 void weighing(Mat&, Mat&);
 
