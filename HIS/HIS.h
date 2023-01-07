@@ -1,4 +1,5 @@
 #pragma once
+#pragma once
 #include<opencv2/core/core.hpp>
 #include<opencv2/highgui/highgui.hpp>
 #include<opencv2/imgproc.hpp>
@@ -14,7 +15,7 @@ float g[216][297];
 float b[216][297];
 float I_I[216][297];
 
-void HISchanged(string path_r,string path_g,string path_b,string path_pan) {
+void HISchanged(string path_r, string path_g, string path_b, string path_pan) {
 	Mat Mr = imread(path_r, IMREAD_GRAYSCALE);
 	Mat Mg = imread(path_g, IMREAD_GRAYSCALE);
 	Mat Mb = imread(path_b, IMREAD_GRAYSCALE);
@@ -24,14 +25,14 @@ void HISchanged(string path_r,string path_g,string path_b,string path_pan) {
 			g[i][j] = (int)Mg.at<uchar>(i, j);
 			b[i][j] = (int)Mb.at<uchar>(i, j);
 		}
-	}//å‚¨å­˜r,g,bä¸‰æ³¢æ®µç°åº¦å€¼
+	}//´¢´ær,g,bÈı²¨¶Î»Ò¶ÈÖµ
 	Mat hsi(216, 297, CV_8UC3);
 	float H = 0, I = 0, S = 0;
 	for (int i = 0; i < 216; i++) {
 		for (int j = 0; j < 297; j++) {
 			float R = r[i][j] / 255.f;
 			float G = g[i][j] / 255.f;
-			float B = b[i][j] / 255.f;//å½’ä¸€åŒ–å¤„ç†
+			float B = b[i][j] / 255.f;//¹éÒ»»¯´¦Àí
 			float k = (R - G + R - B) / 2;
 			float L = sqrt((R - G) * (R - G) + (R - B) * (G - B));
 			if (L == 0) {
@@ -59,8 +60,8 @@ void HISchanged(string path_r,string path_g,string path_b,string path_pan) {
 			hsi.at<Vec3b>(i, j)[1] = S * 255;
 			hsi.at<Vec3b>(i, j)[2] = I * 255;
 		}
-	}//RGBè½¬HSIï¼Œæœ‰å…¬å¼
-	Mat M(216, 297, CV_8UC3, Scalar(0, 0, 255));//å•çº¯ç”±R,G,Bä¸‰æ³¢æ®µç»„æˆçš„å›¾åƒ
+	}//RGB×ªHSI£¬ÓĞ¹«Ê½
+	Mat M(216, 297, CV_8UC3, Scalar(0, 0, 255));//µ¥´¿ÓÉR,G,BÈı²¨¶Î×é³ÉµÄÍ¼Ïñ
 	for (int i = 0; i < 216; i++) {
 		for (int j = 0; j < 297; j++) {
 			M.at<Vec3b>(i, j)[0] = b[i][j];
@@ -69,24 +70,24 @@ void HISchanged(string path_r,string path_g,string path_b,string path_pan) {
 		}
 	}
 	resize(M, M, { 594,430 }, 0, 0, cv::INTER_CUBIC);
-	imshow("rgbimage", M);//åŸå½©è‰²å›¾åƒï¼ˆç”¨resizeæ”¾å¤§åï¼‰
-	imshow("hsiimage", hsi);//hsiæ³¢æ®µå›¾åƒ
+	imshow("rgbimage", M);//Ô­²ÊÉ«Í¼Ïñ£¨ÓÃresize·Å´óºó£©
+	imshow("hsiimage", hsi);//hsi²¨¶ÎÍ¼Ïñ
 	resize(hsi, hsi, { 594,430 }, 0, 0, cv::INTER_CUBIC);
-	imshow("hsinewimage", hsi);//resizeæ”¾å¤§åçš„hsiæ³¢æ®µå›¾åƒ
-	Mat Mpan = imread(path_pan, IMREAD_GRAYSCALE);//panæ³¢æ®µ
-	Mat MI(216, 297, CV_8UC1);//Iæ³¢æ®µå•ç‹¬åˆ†ç¦»
+	imshow("hsinewimage", hsi);//resize·Å´óºóµÄhsi²¨¶ÎÍ¼Ïñ
+	Mat Mpan = imread(path_pan, IMREAD_GRAYSCALE);//pan²¨¶Î
+	Mat MI(216, 297, CV_8UC1);//I²¨¶Îµ¥¶À·ÖÀë
 	for (int i = 0; i < 216; i++) {
 		for (int j = 0; j < 297; j++) {
 			MI.at<uchar>(i, j) = I_I[i][j];
 		}
 	}
-	Mat MInew = Match(Mpan, MI);//panæ³¢æ®µä»¥Iæ³¢æ®µä¸ºå‚è€ƒï¼Œè¿›è¡Œç›´æ–¹å›¾åŒ¹é…
+	Mat MInew = Match(Mpan, MI);//pan²¨¶ÎÒÔI²¨¶ÎÎª²Î¿¼£¬½øĞĞÖ±·½Í¼Æ¥Åä
 	Mat rgb(430, 594, CV_8UC3);
 	for (int i = 0; i < 430; i++) {
 		for (int j = 0; j < 594; j++) {
 			hsi.at<Vec3b>(i, j)[2] = (float)MInew.at<uchar>(i, j);
 		}
-	}//ç”¨åŒ¹é…åçš„MInewæ›¿æ¢Iæ³¢æ®µ
+	}//ÓÃÆ¥ÅäºóµÄMInewÌæ»»I²¨¶Î
 	imshow("hsinewnewimage", hsi);
 	float  R = 0, G = 0, B = 0;
 	for (int i = 0; i < 430; i++) {
@@ -116,6 +117,6 @@ void HISchanged(string path_r,string path_g,string path_b,string path_pan) {
 			rgb.at<Vec3b>(i, j)[1] = G * 255;
 			rgb.at<Vec3b>(i, j)[2] = R * 255;
 		}
-	}//HSIè½¬RGB
-	imshow("rgbnewimage", rgb);//æœ€ç»ˆç»“æœ
+	}//HSI×ªRGB
+	imshow("rgbnewimage", rgb);//×îÖÕ½á¹û
 }

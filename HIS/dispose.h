@@ -1,4 +1,5 @@
 #pragma once
+#pragma once
 #include<opencv2/core/core.hpp>
 #include<opencv2/highgui/highgui.hpp>
 #include<opencv2/imgproc.hpp>
@@ -22,21 +23,21 @@ void drawHist(Mat& hist, int type, string name) {
 	}
 }
 
-void Match(string path1, string path2) {
-	Mat img1 = imread(path1);
-	Mat img2 = imread(path2);
+Mat Match(Mat& img1, Mat& img2) {
+	/*Mat img1 = imread(path1);
+	Mat img2 = imread(path2);*/
 	Mat hist1, hist2;
-	//è®¡ç®—ä¸¤å¼ å›¾åƒç›´æ–¹å›¾
+	//¼ÆËãÁ½ÕÅÍ¼ÏñÖ±·½Í¼
 	const int channels[1] = { 0 };
 	float inRanges[2] = { 0,255 };
 	const float* ranges[1] = { inRanges };
 	const int bins[1] = { 256 };
 	calcHist(&img1, 1, channels, Mat(), hist1, 1, bins, ranges);
 	calcHist(&img2, 1, channels, Mat(), hist2, 1, bins, ranges);
-	//å½’ä¸€åŒ–ä¸¤å¼ å›¾åƒçš„ç›´æ–¹å›¾
+	//¹éÒ»»¯Á½ÕÅÍ¼ÏñµÄÖ±·½Í¼
 	drawHist(hist1, NORM_L1, "hist1");
 	drawHist(hist2, NORM_L1, "hist2");
-	//è®¡ç®—ä¸¤å¼ å›¾åƒç›´æ–¹å›¾çš„ç´¯ç§¯æ¦‚ç‡
+	//¼ÆËãÁ½ÕÅÍ¼ÏñÖ±·½Í¼µÄÀÛ»ı¸ÅÂÊ
 	float hist1_cdf[256] = { hist1.at<float>(0) };
 	float hist2_cdf[256] = { hist2.at<float>(0) };
 	for (int i = 1; i < 256; i++)
@@ -44,7 +45,7 @@ void Match(string path1, string path2) {
 		hist1_cdf[i] = hist1_cdf[i - 1] + hist1.at<float>(i);
 		hist2_cdf[i] = hist2_cdf[i - 1] + hist2.at<float>(i);
 	}
-	//æ„å»ºç´¯ç§¯æ¦‚ç‡è¯¯å·®çŸ©é˜µ
+	//¹¹½¨ÀÛ»ı¸ÅÂÊÎó²î¾ØÕó
 	float diff_cdf[256][256];
 	for (int i = 0; i < 256; i++)
 	{
@@ -53,14 +54,14 @@ void Match(string path1, string path2) {
 			diff_cdf[i][j] = fabs(hist1_cdf[i] - hist2_cdf[j]);
 		}
 	}
-	//ç”ŸæˆLUTæ˜ å°„è¡¨
+	//Éú³ÉLUTÓ³Éä±í
 	Mat lut(1, 256, CV_8U);
 	for (int i = 0; i < 256; i++)
 	{
-		// æŸ¥æ‰¾æºç°åº¦çº§ä¸ºiçš„æ˜ å°„ç°åº¦å’Œiçš„ç´¯ç§¯æ¦‚ç‡å·®å€¼æœ€å°çš„è§„å®šåŒ–ç°åº¦
+		// ²éÕÒÔ´»Ò¶È¼¶ÎªiµÄÓ³Éä»Ò¶ÈºÍiµÄÀÛ»ı¸ÅÂÊ²îÖµ×îĞ¡µÄ¹æ¶¨»¯»Ò¶È
 		float min = diff_cdf[i][0];
 		int index = 0;
-		//å¯»æ‰¾ç´¯ç§¯æ¦‚ç‡è¯¯å·®çŸ©é˜µä¸­æ¯ä¸€è¡Œä¸­çš„æœ€å°å€¼
+		//Ñ°ÕÒÀÛ»ı¸ÅÂÊÎó²î¾ØÕóÖĞÃ¿Ò»ĞĞÖĞµÄ×îĞ¡Öµ
 		for (int j = 1; j < 256; j++)
 		{
 			if (min > diff_cdf[i][j])
@@ -74,8 +75,9 @@ void Match(string path1, string path2) {
 	Mat result, hist3;
 	LUT(img1, lut, result);
 	calcHist(&result, 1, channels, Mat(), hist3, 1, bins, ranges);
-	drawHist(hist3, NORM_L1, "hist3"); //ç»˜åˆ¶åŒ¹é…åçš„å›¾åƒç›´æ–¹å›¾
+	drawHist(hist3, NORM_L1, "hist3"); //»æÖÆÆ¥ÅäºóµÄÍ¼ÏñÖ±·½Í¼
 	waitKey(0);
+	return result;
 }
 
 int Max(int a[430][594])
@@ -126,6 +128,6 @@ void Contraststretch(string path1, int max, int min) {
 			N.at<uchar>(i, j) = newgreypoint[i][j];
 		}
 	}
-	imshow("åŸå›¾åƒ", M);
-	imshow("æ‹‰ä¼¸ä¹‹åçš„å›¾åƒ", N);
+	imshow("Ô­Í¼Ïñ", M);
+	imshow("À­ÉìÖ®ºóµÄÍ¼Ïñ", N);
 }
